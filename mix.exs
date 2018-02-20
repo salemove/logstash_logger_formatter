@@ -4,7 +4,7 @@ defmodule LogstashLoggerFormatter.Mixfile do
   def project do
     [
       app: :logstash_logger_formatter,
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.4",
       start_permanent: Mix.env() == :prod,
       build_embedded: Mix.env() == :prod,
@@ -42,8 +42,8 @@ defmodule LogstashLoggerFormatter.Mixfile do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ex_doc, ">= 0.0.0", only: :dev},
-      {:poison, "~> 1.0 or ~> 2.0 or ~> 3.0", only: :test}
+      {:poison, "~> 1.0 or ~> 2.0 or ~> 3.0", optional: true},
+      {:ex_doc, ">= 0.0.0", only: :dev}
     ]
   end
 end
