@@ -9,7 +9,7 @@ defmodule LogstashLoggerFormatterTest do
       :console,
       format: {LogstashLoggerFormatter, :format},
       colors: [enabled: false],
-      metadata: [:application, :extra_pid, :extra_map, :extra_tuple, :extra_ref]
+      metadata: [:application, :extra_pid, :extra_map, :extra_tuple, :extra_ref, :datetime]
     )
   end
 
@@ -40,5 +40,18 @@ defmodule LogstashLoggerFormatterTest do
     assert decoded_message["extra_ref"] == inspect(ref)
     assert decoded_message["extra_map"] == %{"key" => "value"}
     assert decoded_message["extra_tuple"] == ["el1", "el2"]
+  end
+
+  test "logs DateTime as a string" do
+    datetime = DateTime.utc_now()
+
+    message =
+      capture_log(fn ->
+        Logger.warn("Test message", datetime: datetime)
+      end)
+
+    decoded_message = Poison.decode!(message)
+
+    assert decoded_message["datetime"] == DateTime.to_iso8601(datetime)
   end
 end
