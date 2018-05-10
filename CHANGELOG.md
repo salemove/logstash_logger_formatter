@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+  * Support Date/Time structs in metadata
+
 ## 0.1.1
 
   * Make Poison optional dependency, which will fix compilation warnings

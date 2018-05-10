@@ -55,6 +55,10 @@ defmodule LogstashLoggerFormatter do
        when is_reference(md),
        do: inspect(md)
 
+  defp format_metadata(%type{} = dt) when type in [Date, Time, DateTime, NaiveDateTime] do
+    dt
+  end
+
   defp format_metadata(%_{} = md) do
     md
     |> Map.from_struct()
