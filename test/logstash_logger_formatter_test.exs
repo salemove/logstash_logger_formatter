@@ -54,4 +54,18 @@ defmodule LogstashLoggerFormatterTest do
 
     assert decoded_message["datetime"] == DateTime.to_iso8601(datetime)
   end
+
+  test "uses encoder protocol whenever possible" do
+    datetime = DateTime.utc_now()
+    struct = %CustomStruct{value: datetime}
+
+    message =
+      capture_log(fn ->
+        Logger.warn("Test message", datetime: struct)
+      end)
+
+    decoded_message = Poison.decode!(message)
+
+    assert decoded_message["datetime"] == DateTime.to_iso8601(datetime)
+  end
 end

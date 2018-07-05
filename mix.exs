@@ -4,8 +4,9 @@ defmodule LogstashLoggerFormatter.Mixfile do
   def project do
     [
       app: :logstash_logger_formatter,
-      version: "0.1.2",
+      version: "0.2.0",
       elixir: "~> 1.4",
+      elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       build_embedded: Mix.env() == :prod,
       deps: deps(),
@@ -38,6 +39,10 @@ defmodule LogstashLoggerFormatter.Mixfile do
       extra_applications: [:logger]
     ]
   end
+
+  # Specifies which paths to compile per environment.
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do

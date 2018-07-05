@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0
+
+  * Use JSON engine protocols to encode structs in metadata
+
 ## 0.1.2
 
   * Support Date/Time structs in metadata
