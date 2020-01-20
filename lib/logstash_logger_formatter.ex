@@ -38,7 +38,7 @@ defmodule LogstashLoggerFormatter do
       |> add_timestamp(timestamp)
       |> add_level(level)
       |> add_message(message)
-      |> @engine.encode_to_iodata!()
+      |> @engine.encode!(iodata: true)
 
     [event, '\n']
   end

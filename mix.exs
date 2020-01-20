@@ -47,7 +47,7 @@ defmodule LogstashLoggerFormatter.Mixfile do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:poison, "~> 1.0 or ~> 2.0 or ~> 3.0", optional: true},
+      {:poison, "~> 1.0 or ~> 2.0 or ~> 3.0 or ~> 4.0", optional: true},
       {:ex_doc, ">= 0.0.0", only: :dev}
     ]
   end
