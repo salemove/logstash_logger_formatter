@@ -26,7 +26,7 @@ defmodule LogstashLoggerFormatter do
   @msg_field Keyword.get(@config, :message_field, "message")
   @extra_fields Keyword.get(@config, :extra_fields, %{})
 
-  @ts_formatter if System.version() >= "1.6.0", do: Logger.Formatter, else: Logger.Utils
+  @ts_formatter Logger.Formatter
 
   @spec format(Logger.level(), Logger.message(), Logger.Formatter.time(), Keyword.t()) ::
           IO.chardata()
