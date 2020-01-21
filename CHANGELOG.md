@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+  * Add support for Poison 4.x
+
 ## 0.2.0
 
   * Use JSON engine protocols to encode structs in metadata
