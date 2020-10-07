@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+  * Add support for Elixir 1.10 with OTP 22
+
 ## 0.3.0
 
   * Add support for Poison 4.x
