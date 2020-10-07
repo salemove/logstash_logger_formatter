@@ -42,6 +42,12 @@ defmodule LogstashLoggerFormatterTest do
     assert decoded_message["extra_ref"] == inspect(ref)
     assert decoded_message["extra_map"] == %{"key" => "value"}
     assert decoded_message["extra_tuple"] == ["el1", "el2"]
+
+    for {key, val} <- decoded_message, is_list(val) do
+      # Logstash is unable to parse fields of varied types
+      assert all_of_same_type?(val),
+             "Metadata element #{key} contains values of varied types: #{inspect(val)}"
+    end
   end
 
   test "logs DateTime as a string" do
@@ -69,5 +75,9 @@ defmodule LogstashLoggerFormatterTest do
     decoded_message = Poison.decode!(message)
 
     assert decoded_message["datetime"] == DateTime.to_iso8601(datetime)
+  end
+
+  defp all_of_same_type?(list) when is_list(list) do
+    list |> Enum.map(&BasicTypes.typeof(&1)) |> Enum.uniq() |> Enum.count() == 1
   end
 end

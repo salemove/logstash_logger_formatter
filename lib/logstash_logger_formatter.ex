@@ -44,7 +44,25 @@ defmodule LogstashLoggerFormatter do
   end
 
   defp prepare_metadata(metadata) do
-    Map.new(metadata, fn {k, v} -> {metadata_key(k), format_metadata(v)} end)
+    metadata
+    |> prepare_mfa()
+    |> Map.new(fn {k, v} -> {metadata_key(k), format_metadata(v)} end)
+  end
+
+  defp prepare_mfa(metadata) do
+    # Elixir versions prior to 1.10-otp-22 include `module` and `function/arity` in metadata.
+    # Since 1.10-otp22 metadata includes a `mfa` tuple.
+    # Unify the output and ensure lists with varying types do not end up in
+    # logstash as it is unable to parse them.
+    case Keyword.get(metadata, :mfa) do
+      {mod, fun, arity} ->
+        metadata
+        |> Keyword.delete(:mfa)
+        |> Keyword.merge(module: mod, function: "#{fun}/#{arity}")
+
+      _ ->
+        metadata
+    end
   end
 
   defp metadata_key(:application), do: :otp_application
