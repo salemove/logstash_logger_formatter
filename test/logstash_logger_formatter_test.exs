@@ -9,11 +9,11 @@ defmodule LogstashLoggerFormatterTest do
       :console,
       format: {LogstashLoggerFormatter, :format},
       colors: [enabled: false],
-      metadata: [:application, :extra_pid, :extra_map, :extra_tuple, :extra_ref, :datetime]
+      metadata: :all
     )
   end
 
-  test "logs message in JSON format" do
+  test "logs message in JSON format", %{test: test_name} do
     ref = make_ref()
     pid = self()
 
@@ -36,6 +36,8 @@ defmodule LogstashLoggerFormatterTest do
     assert decoded_message["otp_application"] == "otp_app"
     assert decoded_message["@timestamp"] =~ ~r[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+00:00]
     assert decoded_message["level"] == "warn"
+    assert decoded_message["module"] == "Elixir.#{inspect(__MODULE__)}"
+    assert decoded_message["function"] == "#{to_string(test_name)}/1"
     assert decoded_message["extra_pid"] == inspect(pid)
     assert decoded_message["extra_ref"] == inspect(ref)
     assert decoded_message["extra_map"] == %{"key" => "value"}
