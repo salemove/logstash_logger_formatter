@@ -11,7 +11,7 @@ defmodule LogstashLoggerFormatter do
   The formatter is configured via `:logstash_formatter` key in `config.exs`:
 
       config :logger, :logstash_formatter,
-        engine: Poison,
+        engine: Jason,
         timestamp_field: "@timestamp",
         message_field: "message",
         extra_fields: %{"application" => "foo"}
@@ -21,12 +21,16 @@ defmodule LogstashLoggerFormatter do
   """
 
   @config Application.get_env(:logger, :logstash_formatter, [])
-  @engine Keyword.get(@config, :engine, Poison)
+  @engine Keyword.get(@config, :engine, Jason)
   @ts_field Keyword.get(@config, :timestamp_field, "@timestamp")
   @msg_field Keyword.get(@config, :message_field, "message")
   @extra_fields Keyword.get(@config, :extra_fields, %{})
 
   @ts_formatter Logger.Formatter
+
+  @encode_fn if function_exported?(@engine, :encode_to_iodata!, 1),
+               do: :encode_to_iodata!,
+               else: :encode!
 
   @spec format(Logger.level(), Logger.message(), Logger.Formatter.time(), Keyword.t()) ::
           IO.chardata()
@@ -38,7 +42,8 @@ defmodule LogstashLoggerFormatter do
       |> add_timestamp(timestamp)
       |> add_level(level)
       |> add_message(message)
-      |> @engine.encode!(iodata: true)
+
+    event = apply(@engine, @encode_fn, [event])
 
     [event, '\n']
   end

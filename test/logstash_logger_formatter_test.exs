@@ -29,7 +29,7 @@ defmodule LogstashLoggerFormatterTest do
         )
       end)
 
-    decoded_message = Poison.decode!(message)
+    decoded_message = Jason.decode!(message)
 
     assert decoded_message["message"] == "Test message"
     assert decoded_message["application"] == "logstash_formatter"
@@ -58,7 +58,7 @@ defmodule LogstashLoggerFormatterTest do
         Logger.warn("Test message", datetime: datetime)
       end)
 
-    decoded_message = Poison.decode!(message)
+    decoded_message = Jason.decode!(message)
 
     assert decoded_message["datetime"] == DateTime.to_iso8601(datetime)
   end
@@ -72,7 +72,7 @@ defmodule LogstashLoggerFormatterTest do
         Logger.warn("Test message", datetime: struct)
       end)
 
-    decoded_message = Poison.decode!(message)
+    decoded_message = Jason.decode!(message)
 
     assert decoded_message["datetime"] == DateTime.to_iso8601(datetime)
   end
