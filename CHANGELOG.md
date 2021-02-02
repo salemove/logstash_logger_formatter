@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+  * Avoid crashing when metadata includes a function
+
 ## 1.0.0
 
   * Change default JSON encoder to Jason
