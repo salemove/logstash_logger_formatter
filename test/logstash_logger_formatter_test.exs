@@ -77,6 +77,18 @@ defmodule LogstashLoggerFormatterTest do
     assert decoded_message["datetime"] == DateTime.to_iso8601(datetime)
   end
 
+  test "logs function as a string" do
+    function = &:application_controller.format_log/1
+
+    message =
+      capture_log(fn ->
+        Logger.warn("Test message", foo: function)
+      end)
+
+    decoded_message = Jason.decode!(message)
+    assert decoded_message["foo"] == "&:application_controller.format_log/1"
+  end
+
   defp all_of_same_type?(list) when is_list(list) do
     list |> Enum.map(&BasicTypes.typeof(&1)) |> Enum.uniq() |> Enum.count() == 1
   end

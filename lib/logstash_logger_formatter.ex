@@ -78,6 +78,8 @@ defmodule LogstashLoggerFormatter do
        when is_reference(md),
        do: inspect(md)
 
+  defp format_metadata(md) when is_function(md), do: inspect(md)
+
   # Normally, structs shouldn't be passed to metadata, but if they're passed, we'll let
   # Poison/Jason handle encoding of structs
   defp format_metadata(%_{} = md) do
