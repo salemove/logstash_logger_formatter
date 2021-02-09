@@ -83,7 +83,16 @@ defmodule LogstashLoggerFormatter do
   # Normally, structs shouldn't be passed to metadata, but if they're passed, we'll let
   # Poison/Jason handle encoding of structs
   defp format_metadata(%_{} = md) do
-    md
+    if struct_implemented?(md) do
+      md
+    else
+      # If the Encoder cannot handle the struct we'll just convert it to a
+      # regular map and log it.
+      md
+      |> Map.from_struct()
+      |> Map.put("__struct__", md.__struct__)
+      |> format_metadata()
+    end
   end
 
   defp format_metadata(md) when is_map(md) do
@@ -120,5 +129,10 @@ defmodule LogstashLoggerFormatter do
 
   defp add_message(event, message) do
     Map.put(event, @msg_field, to_string(message))
+  end
+
+  defp struct_implemented?(data) do
+    impl = @engine.Encoder.impl_for(data)
+    impl && impl != @engine.Encoder.Any
   end
 end
