@@ -89,6 +89,31 @@ defmodule LogstashLoggerFormatterTest do
     assert decoded_message["foo"] == "&:application_controller.format_log/1"
   end
 
+  test "logs unhandled structs" do
+    message =
+      capture_log(fn ->
+        error = %KeyError{
+          key: :on_terminate,
+          message: nil,
+          term: [
+            [on_terminate: &:application_controller.format_log/1]
+          ]
+        }
+
+        Logger.error("Oh no", error: error)
+      end)
+
+    decoded_message = Jason.decode!(message)
+
+    assert decoded_message["error"] == %{
+             "__struct__" => "Elixir.KeyError",
+             "__exception__" => true,
+             "key" => "on_terminate",
+             "message" => nil,
+             "term" => [[["on_terminate", "&:application_controller.format_log/1"]]]
+           }
+  end
+
   defp all_of_same_type?(list) when is_list(list) do
     list |> Enum.map(&BasicTypes.typeof(&1)) |> Enum.uniq() |> Enum.count() == 1
   end
