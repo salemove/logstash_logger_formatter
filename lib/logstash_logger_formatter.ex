@@ -25,6 +25,8 @@ defmodule LogstashLoggerFormatter do
   @ts_field Keyword.get(@config, :timestamp_field, "@timestamp")
   @msg_field Keyword.get(@config, :message_field, "message")
   @extra_fields Keyword.get(@config, :extra_fields, %{})
+  @max_metadata_size Keyword.get(@config, :max_metadata_size, 10000)
+  @max_metadata_item_size Keyword.get(@config, :max_metadata_item_size, 4000)
 
   @ts_formatter Logger.Formatter
 
@@ -38,6 +40,7 @@ defmodule LogstashLoggerFormatter do
     event =
       metadata
       |> prepare_metadata()
+      |> truncate_metadata()
       |> add_extra_fields()
       |> add_timestamp(timestamp)
       |> add_level(level)
@@ -72,6 +75,66 @@ defmodule LogstashLoggerFormatter do
 
   defp metadata_key(:application), do: :otp_application
   defp metadata_key(key), do: key
+
+  defp truncate_metadata(md) do
+    if metadata_too_big?(md) do
+      Enum.reduce(md, %{}, fn {key, value}, acc ->
+        Map.put(acc, key, maybe_truncate_item(value))
+      end)
+    else
+      md
+    end
+  end
+
+  defp maybe_truncate_item(md) when is_number(md) or is_atom(md) or is_struct(md), do: md
+  defp maybe_truncate_item(item) do
+    if metadata_item_too_big?(item), do: truncate_item(item), else: item
+  end
+
+  defp truncate_item(item) when is_list(item) do
+    list_length = Kernel.length(item)
+    keep_items_count = items_to_keep(metadata_byte_size(item), list_length)
+
+    truncated_list =
+      item
+      |> Enum.take(keep_items_count)
+      |> Enum.map(&maybe_truncate_item/1)
+
+    if keep_items_count < list_length do
+      if is_map(List.first(truncated_list)) do
+        truncated_list ++ [%{"-pruned-" => true}]
+      else
+        truncated_list ++ ["-pruned-"]
+      end
+    else
+      truncated_list
+    end
+  end
+
+  defp truncate_item(item) when is_map(item) do
+    items_in_map = Kernel.length(Map.keys(item))
+    keep_items_count = items_to_keep(metadata_byte_size(item), items_in_map)
+
+    item_subset = Map.take(item, Enum.take(Map.keys(item), keep_items_count))
+    truncated_map = Enum.reduce(item_subset, %{}, fn {key, value}, acc ->
+      Map.put(acc, key, maybe_truncate_item(value))
+    end)
+    if keep_items_count < items_in_map, do: Map.put(truncated_map, "-pruned-", true), else: truncated_map
+  end
+
+  defp truncate_item(item) do
+    String.slice(apply(@engine, @encode_fn, [item]), 0..@max_metadata_item_size - 1) <> " (-pruned-)"
+  end
+
+  defp items_to_keep(byte_size, length) do
+    max(floor((@max_metadata_item_size / byte_size) * length), 1)
+  end
+
+  defp metadata_item_too_big?(md), do: metadata_byte_size(md) > @max_metadata_item_size
+
+  defp metadata_too_big?(md), do: metadata_byte_size(md) > @max_metadata_size
+
+  defp metadata_byte_size(md), do: Kernel.byte_size(apply(@engine, @encode_fn, [md]))
 
   defp format_metadata(md)
        when is_pid(md)
