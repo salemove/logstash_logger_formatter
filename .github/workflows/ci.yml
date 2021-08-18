@@ -1,0 +1,31 @@
+name: Ruby
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
+    strategy:
+      matrix:
+        otp: ['23.2']
+        elixir: ['1.11']
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
+      - run: mix deps.get
+        env:
+          MIX_ENV: test
+      - run: mix deps.compile
+        env:
+          MIX_ENV: test
+      - run: mix test
