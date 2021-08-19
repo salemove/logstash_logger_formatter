@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.1
+
+  * Avoid crashing when metadata is iosteam and not a string.
+
+## 1.1.0
+
+  * Add metadata truncation. By default all metadata bigger than 10000 bytes will be truncated.
+
 ## 1.0.1
 
   * Avoid crashing when metadata includes a function
