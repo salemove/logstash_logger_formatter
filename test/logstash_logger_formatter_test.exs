@@ -238,7 +238,6 @@ defmodule LogstashLoggerFormatterTest do
       "some long string in it 4",
       "some long string in it 5",
       "some long string in it 6",
-      "some long string in it 7",
       "-pruned-"
     ]
     assert decoded_message["long_list_with_maps"] == [
@@ -246,7 +245,6 @@ defmodule LogstashLoggerFormatterTest do
       %{"thing" => "some long string in it 2"},
       %{"thing" => "some long string in it 3"},
       %{"thing" => "some long string in it 4"},
-      %{"thing" => "some long string in it 5"},
       %{"-pruned-" => true}
     ]
     assert decoded_message["short_list_with_very_long_string"] == [
@@ -259,7 +257,6 @@ defmodule LogstashLoggerFormatterTest do
       "c" => "some long string in it 3",
       "d" => "some long string in it 4",
       "e" => "some long string in it 5",
-      "f" => "some long string in it 6",
       "-pruned-" => true
     }
     assert decoded_message["small_map"] == %{
