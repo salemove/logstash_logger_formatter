@@ -123,7 +123,7 @@ defmodule LogstashLoggerFormatter do
   end
 
   defp truncate_item(item) do
-    String.slice(apply(@engine, @encode_fn, [item]), 0..@max_metadata_item_size - 1) <> " (-pruned-)"
+    String.slice(apply(@engine, :encode!, [item]), 0, @max_metadata_item_size) <> " (-pruned-)"
   end
 
   defp items_to_keep(byte_size, length) do
@@ -134,7 +134,7 @@ defmodule LogstashLoggerFormatter do
 
   defp metadata_too_big?(md), do: metadata_byte_size(md) > @max_metadata_size
 
-  defp metadata_byte_size(md), do: Kernel.byte_size(apply(@engine, @encode_fn, [md]))
+  defp metadata_byte_size(md), do: :erlang.external_size(md)
 
   defp format_metadata(md)
        when is_pid(md)
