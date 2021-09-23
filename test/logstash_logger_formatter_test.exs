@@ -296,6 +296,28 @@ defmodule LogstashLoggerFormatterTest do
                "scelerisque. Praesent s (-pruned-)"
   end
 
+  test "prunes invalid UTF-8 bytes in message and metadata" do
+    invalid_utf8_bytes = <<97, 131, 255>>
+    invalid_utf8_bytes_pruned = Logger.Formatter.prune(invalid_utf8_bytes)
+
+    message =
+      capture_log(fn ->
+        Logger.warn(
+          invalid_utf8_bytes,
+          key1: invalid_utf8_bytes,
+          key2: {:a, invalid_utf8_bytes}
+        )
+      end)
+
+    decoded_message = Jason.decode!(message)
+
+    assert %{
+             "message" => ^invalid_utf8_bytes_pruned,
+             "key1" => ^invalid_utf8_bytes_pruned,
+             "key2" => ["a", ^invalid_utf8_bytes_pruned]
+           } = decoded_message
+  end
+
   defp all_of_same_type?(list) when is_list(list) do
     list |> Enum.map(&BasicTypes.typeof(&1)) |> Enum.uniq() |> Enum.count() == 1
   end

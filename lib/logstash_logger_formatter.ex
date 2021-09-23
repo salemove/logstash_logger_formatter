@@ -178,6 +178,10 @@ defmodule LogstashLoggerFormatter do
     |> format_metadata()
   end
 
+  defp format_metadata(md) when is_binary(md) do
+    prune_string(md)
+  end
+
   defp format_metadata(other), do: other
 
   defp add_extra_fields(event) do
@@ -197,11 +201,21 @@ defmodule LogstashLoggerFormatter do
   end
 
   defp add_message(event, message) do
-    Map.put(event, @msg_field, to_string(message))
+    Map.put(
+      event,
+      @msg_field,
+      message |> to_string() |> prune_string()
+    )
   end
 
   defp struct_implemented?(data) do
     impl = @engine.Encoder.impl_for(data)
     impl && impl != @engine.Encoder.Any
+  end
+
+  # Prunes invalid Unicode code points from lists and invalid UTF-8 bytes.
+  # This is needed because otherwise the string cannot be encoded in JSON.
+  defp prune_string(str) do
+    Logger.Formatter.prune(str)
   end
 end
