@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.2
+
+- Allow message and metadata to be logged in cases where it contains invalid UTF-8
+bytes. Previously, the formatter raised an error when it encountered such message.
+
 ## 1.1.1
 
   * Avoid crashing when metadata is iosteam and not a string.

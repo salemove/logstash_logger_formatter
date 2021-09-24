@@ -87,6 +87,7 @@ defmodule LogstashLoggerFormatter do
   end
 
   defp maybe_truncate_item(md) when is_number(md) or is_atom(md) or is_struct(md), do: md
+
   defp maybe_truncate_item(item) do
     if metadata_item_too_big?(item), do: truncate_item(item), else: item
   end
@@ -116,10 +117,15 @@ defmodule LogstashLoggerFormatter do
     keep_items_count = items_to_keep(metadata_byte_size(item), items_in_map)
 
     item_subset = Map.take(item, Enum.take(Map.keys(item), keep_items_count))
-    truncated_map = Enum.reduce(item_subset, %{}, fn {key, value}, acc ->
-      Map.put(acc, key, maybe_truncate_item(value))
-    end)
-    if keep_items_count < items_in_map, do: Map.put(truncated_map, "-pruned-", true), else: truncated_map
+
+    truncated_map =
+      Enum.reduce(item_subset, %{}, fn {key, value}, acc ->
+        Map.put(acc, key, maybe_truncate_item(value))
+      end)
+
+    if keep_items_count < items_in_map,
+      do: Map.put(truncated_map, "-pruned-", true),
+      else: truncated_map
   end
 
   defp truncate_item(item) do
@@ -127,7 +133,7 @@ defmodule LogstashLoggerFormatter do
   end
 
   defp items_to_keep(byte_size, length) do
-    max(floor((@max_metadata_item_size / byte_size) * length), 1)
+    max(floor(@max_metadata_item_size / byte_size * length), 1)
   end
 
   defp metadata_item_too_big?(md), do: metadata_byte_size(md) > @max_metadata_item_size
@@ -172,6 +178,10 @@ defmodule LogstashLoggerFormatter do
     |> format_metadata()
   end
 
+  defp format_metadata(md) when is_binary(md) do
+    prune_string(md)
+  end
+
   defp format_metadata(other), do: other
 
   defp add_extra_fields(event) do
@@ -191,11 +201,21 @@ defmodule LogstashLoggerFormatter do
   end
 
   defp add_message(event, message) do
-    Map.put(event, @msg_field, to_string(message))
+    Map.put(
+      event,
+      @msg_field,
+      message |> to_string() |> prune_string()
+    )
   end
 
   defp struct_implemented?(data) do
     impl = @engine.Encoder.impl_for(data)
     impl && impl != @engine.Encoder.Any
+  end
+
+  # Prunes invalid Unicode code points from lists and invalid UTF-8 bytes.
+  # This is needed because otherwise the string cannot be encoded in JSON.
+  defp prune_string(str) do
+    Logger.Formatter.prune(str)
   end
 end

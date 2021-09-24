@@ -28,4 +28,5 @@ jobs:
       - run: mix deps.compile
         env:
           MIX_ENV: test
+      - run: mix format --check-formatted
       - run: mix test
