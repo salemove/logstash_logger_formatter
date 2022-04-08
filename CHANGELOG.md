@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.3
+
+- Fix crashes when using complex map keys in metadata. 
+  The map key is formatted similarly to all other metadata, but as all resulting keys must be strings:
+    * Should the formatting result be a list, join it with the "," separator.
+    * Should it be anything more complex, replace the key with "unencodable map key".
+  Previously, the formatter raised an error when it encountered such message.
+
 ## 1.1.2
 
 - Allow message and metadata to be logged in cases where it contains invalid UTF-8
