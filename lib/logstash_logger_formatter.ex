@@ -34,6 +34,8 @@ defmodule LogstashLoggerFormatter do
                do: :encode_to_iodata!,
                else: :encode!
 
+  @unencodable_map_key_marker "unencodable map key"
+
   @spec format(Logger.level(), Logger.message(), Logger.Formatter.time(), Keyword.t()) ::
           IO.chardata()
   def format(level, message, timestamp, metadata) do
@@ -165,7 +167,7 @@ defmodule LogstashLoggerFormatter do
   end
 
   defp format_metadata(md) when is_map(md) do
-    Enum.into(md, %{}, fn {k, v} -> {k, format_metadata(v)} end)
+    Enum.into(md, %{}, fn {k, v} -> {format_key(k), format_metadata(v)} end)
   end
 
   defp format_metadata(md) when is_list(md) do
@@ -183,6 +185,15 @@ defmodule LogstashLoggerFormatter do
   end
 
   defp format_metadata(other), do: other
+
+  defp format_key(k) do
+    # map keys must be strings
+    case format_metadata(k) do
+      formatted when is_atom(formatted) or is_binary(formatted) -> formatted
+      formatted when is_list(formatted) -> Enum.join(formatted, ",")
+      _ -> @unencodable_map_key_marker
+    end
+  end
 
   defp add_extra_fields(event) do
     Enum.into(@extra_fields, event)

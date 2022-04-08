@@ -114,6 +114,25 @@ defmodule LogstashLoggerFormatterTest do
            }
   end
 
+  test "successfully logs MapSets containing tuples" do
+    message =
+      capture_log(fn ->
+        Logger.info("message", foo: MapSet.new(bar: "baz"))
+      end)
+
+    assert message =~ ~r(bar,baz)
+  end
+
+  test "successfully logs maps containing structs as keys" do
+    message =
+      capture_log(fn ->
+        Logger.info("message", foo: %{DateTime.utc_now() => "today"})
+      end)
+
+    assert message =~ "today"
+    assert message =~ "unencodable map key"
+  end
+
   test "truncates metadata" do
     message =
       capture_log(fn ->
