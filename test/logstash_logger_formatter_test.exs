@@ -4,6 +4,60 @@ defmodule LogstashLoggerFormatterTest do
   import ExUnit.CaptureLog
   require Logger
 
+  @example_timestamp {{2023, 01, 01}, {12, 00, 00, 00}}
+  @secret_value_example "my-secret-value"
+  @phoenix_crash_example %{
+    message: [
+      "Process ",
+      "#PID<0.2.0>",
+      " terminating",
+      [
+        1,
+        "** (exit) {{{%SomeError{
+        assigns: %{conn: %Plug.Conn{adapter: {Plug.Cowboy.Conn, :...}, assigns: %{layout: false, queues: []}, body_params: %{\"foo\": \"#{
+          @secret_value_example
+        }\"}, cookies: %Plug.Conn.Unfetched{aspect: :cookies}, halted: false, host: \"localhost\", method: \"GET\", owner: #PID<0.1369.0>, params: %{\"foo\" => \"#{
+          @secret_value_example
+        }\"}, path_info: [\"my_path\"], path_params: %{}, port: 4112, query_params: %{\"foo\" => \"#{
+          @secret_value_example
+        }\"}, remote_ip: {127, 0, 0, 1}, req_cookies: %Plug.Conn.Unfetched{aspect: :cookies, foo: \"#{
+          @secret_value_example
+        }\"}, req_headers: [{\"accept\", \"*/*\"}, {\"authorization\", \"Bearer #{
+          @secret_value_example
+        }\"}, {\"host\", \"localhost:4112\"}, {\"user-agent\", \"curl/7.87.0\"}], request_path: \"/my_path\", resp_body: nil, resp_cookies: %{}, resp_headers: [{\"cache-control\", \"max-age=0, private, must-revalidate\"}, {\"access-control-allow-origin\", \"*\"}, {\"access-control-expose-headers\", \"\"}, {\"access-control-allow-credentials\", \"true\"}], scheme: :http, script_name: [], secret_key_base: nil, state: :unset, status: 200}, queues: []}
+        }}}, []}",
+        [
+          '\n',
+          "Initial Call: ",
+          ":cowboy_stream_h.request_process/3",
+          '\n',
+          "Ancestors: ",
+          "[#PID<0.2.0>, #PID<0.1.0>]"
+        ],
+        []
+      ]
+    ],
+    metadata:
+      Keyword.new(%{
+        ancestors: ["#PID<0.2.0>", "#PID<0.1.0>"],
+        crash_reason: ["some_reason", []],
+        domain: [:otp, :sasl],
+        erl_level: :error,
+        error_logger: %{tag: :error_report, type: :crash_report},
+        file: "proc_lib.erl",
+        function: "crash_report/4",
+        gl: "#PID<0.2.0>",
+        initial_call: {:cowboy_stream_h, :request_process, 3},
+        line: 1,
+        logger_formatter: %{title: 'CRASH REPORT'},
+        module: :proc_lib,
+        pid: "#PID<0.2.0>",
+        report_cb: "&:proc_lib.report_cb/2",
+        time: 1_672_993_046_472_382,
+        level: "error"
+      })
+  }
+
   setup do
     Logger.configure_backend(
       :console,
@@ -335,6 +389,23 @@ defmodule LogstashLoggerFormatterTest do
              "key1" => ^invalid_utf8_bytes_pruned,
              "key2" => ["a", ^invalid_utf8_bytes_pruned]
            } = decoded_message
+  end
+
+  test "logs trimmed crash reports" do
+    log_event =
+      Jason.decode!(
+        LogstashLoggerFormatter.format(
+          :error,
+          @phoenix_crash_example.message,
+          @example_timestamp,
+          @phoenix_crash_example.metadata
+        )
+      )
+
+    refute Map.has_key?(log_event, "crash_reason")
+    refute Map.has_key?(log_event, "initial_call")
+    assert String.contains?(log_event["message"], "SomeError")
+    refute String.contains?(log_event["message"], @secret_value_example)
   end
 
   defp all_of_same_type?(list) when is_list(list) do
