@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.4
+
+- Allow crash reports to be ingested by ElasticSearch
+  * Omit `crash_reason` and `initial_call` to allow ingestion
+  * Limit crash report message to 100 characters by default to reduce the
+    possibility of logging out sensitive information. A separate error
+    reporting tool should be used to get the full error message and stack
+    trace. The message length limit is configurable via
+    `crash_reports.message_length`.
+
 ## 1.1.3
 
 - Fix crashes when using complex map keys in metadata. 

@@ -27,6 +27,7 @@ defmodule LogstashLoggerFormatter do
   @extra_fields Keyword.get(@config, :extra_fields, %{})
   @max_metadata_size Keyword.get(@config, :max_metadata_size, 10000)
   @max_metadata_item_size Keyword.get(@config, :max_metadata_item_size, 4000)
+  @crash_reports_config Keyword.get(@config, :crash_reports, %{message_length: 100})
 
   @ts_formatter Logger.Formatter
 
@@ -56,6 +57,7 @@ defmodule LogstashLoggerFormatter do
   defp prepare_metadata(metadata) do
     metadata
     |> prepare_mfa()
+    |> prepare_crash_report_meta()
     |> Map.new(fn {k, v} -> {metadata_key(k), format_metadata(v)} end)
   end
 
@@ -73,6 +75,15 @@ defmodule LogstashLoggerFormatter do
       _ ->
         metadata
     end
+  end
+
+  defp prepare_crash_report_meta(metadata) do
+    # `crash_reason` is a list of elements with different types,
+    # which elasticsearch cannot parse. `initial_call` also causes mapping
+    # errors.
+    # For crashes, all the necessary information is present in `message`,
+    # just drop the metadata fields.
+    metadata |> Keyword.drop([:crash_reason, :initial_call])
   end
 
   defp metadata_key(:application), do: :otp_application
@@ -215,8 +226,16 @@ defmodule LogstashLoggerFormatter do
     Map.put(
       event,
       @msg_field,
-      message |> to_string() |> prune_string()
+      message |> to_string() |> prune_string() |> limit_crash_report_message(event)
     )
+  end
+
+  defp limit_crash_report_message(message, event) do
+    if get_in(event, [:error_logger, :type]) == :crash_report do
+      String.slice(message, 0, @crash_reports_config.message_length)
+    else
+      message
+    end
   end
 
   defp struct_implemented?(data) do
