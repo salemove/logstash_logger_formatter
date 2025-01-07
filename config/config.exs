@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 config :logger,
        :logstash_formatter,

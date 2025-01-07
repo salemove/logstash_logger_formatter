@@ -20,7 +20,7 @@ defmodule LogstashLoggerFormatter do
         format: {LogstashLoggerFormatter, :format}
   """
 
-  @config Application.get_env(:logger, :logstash_formatter, [])
+  @config Application.compile_env(:logger, :logstash_formatter, [])
   @engine Keyword.get(@config, :engine, Jason)
   @ts_field Keyword.get(@config, :timestamp_field, "@timestamp")
   @msg_field Keyword.get(@config, :message_field, "message")
@@ -51,7 +51,7 @@ defmodule LogstashLoggerFormatter do
 
     event = apply(@engine, @encode_fn, [event])
 
-    [event, '\n']
+    [event, "\n"]
   end
 
   defp prepare_metadata(metadata) do
@@ -215,7 +215,7 @@ defmodule LogstashLoggerFormatter do
   end
 
   defp format_timestamp({date, time}) do
-    to_string([@ts_formatter.format_date(date), 'T', @ts_formatter.format_time(time), '+00:00'])
+    to_string([@ts_formatter.format_date(date), "T", @ts_formatter.format_time(time), "+00:00"])
   end
 
   defp add_level(event, level) do

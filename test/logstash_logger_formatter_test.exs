@@ -27,10 +27,10 @@ defmodule LogstashLoggerFormatterTest do
         }\"}, {\"host\", \"localhost:4112\"}, {\"user-agent\", \"curl/7.87.0\"}], request_path: \"/my_path\", resp_body: nil, resp_cookies: %{}, resp_headers: [{\"cache-control\", \"max-age=0, private, must-revalidate\"}, {\"access-control-allow-origin\", \"*\"}, {\"access-control-expose-headers\", \"\"}, {\"access-control-allow-credentials\", \"true\"}], scheme: :http, script_name: [], secret_key_base: nil, state: :unset, status: 200}, queues: []}
         }}}, []}",
         [
-          '\n',
+          "\n",
           "Initial Call: ",
           ":cowboy_stream_h.request_process/3",
-          '\n',
+          "\n",
           "Ancestors: ",
           "[#PID<0.2.0>, #PID<0.1.0>]"
         ],
@@ -49,7 +49,7 @@ defmodule LogstashLoggerFormatterTest do
         gl: "#PID<0.2.0>",
         initial_call: {:cowboy_stream_h, :request_process, 3},
         line: 1,
-        logger_formatter: %{title: 'CRASH REPORT'},
+        logger_formatter: %{title: "CRASH REPORT"},
         module: :proc_lib,
         pid: "#PID<0.2.0>",
         report_cb: "&:proc_lib.report_cb/2",
@@ -73,7 +73,7 @@ defmodule LogstashLoggerFormatterTest do
 
     message =
       capture_log(fn ->
-        Logger.warn(
+        Logger.warning(
           "Test message",
           application: :otp_app,
           extra_pid: pid,
@@ -89,7 +89,7 @@ defmodule LogstashLoggerFormatterTest do
     assert decoded_message["application"] == "logstash_formatter"
     assert decoded_message["otp_application"] == "otp_app"
     assert decoded_message["@timestamp"] =~ ~r[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+00:00]
-    assert decoded_message["level"] == "warn"
+    assert decoded_message["level"] == "warning"
     assert decoded_message["module"] == "Elixir.#{inspect(__MODULE__)}"
     assert decoded_message["function"] == "#{to_string(test_name)}/1"
     assert decoded_message["extra_pid"] == inspect(pid)
@@ -109,7 +109,7 @@ defmodule LogstashLoggerFormatterTest do
 
     message =
       capture_log(fn ->
-        Logger.warn("Test message", datetime: datetime)
+        Logger.warning("Test message", datetime: datetime)
       end)
 
     decoded_message = Jason.decode!(message)
@@ -123,7 +123,7 @@ defmodule LogstashLoggerFormatterTest do
 
     message =
       capture_log(fn ->
-        Logger.warn("Test message", datetime: struct)
+        Logger.warning("Test message", datetime: struct)
       end)
 
     decoded_message = Jason.decode!(message)
@@ -136,7 +136,7 @@ defmodule LogstashLoggerFormatterTest do
 
     message =
       capture_log(fn ->
-        Logger.warn("Test message", foo: function)
+        Logger.warning("Test message", foo: function)
       end)
 
     decoded_message = Jason.decode!(message)
@@ -190,7 +190,7 @@ defmodule LogstashLoggerFormatterTest do
   test "truncates metadata" do
     message =
       capture_log(fn ->
-        Logger.warn(
+        Logger.warning(
           "Test message",
           long_list: [
             "some long string in it 1",
@@ -375,7 +375,7 @@ defmodule LogstashLoggerFormatterTest do
 
     message =
       capture_log(fn ->
-        Logger.warn(
+        Logger.warning(
           invalid_utf8_bytes,
           key1: invalid_utf8_bytes,
           key2: {:a, invalid_utf8_bytes}
