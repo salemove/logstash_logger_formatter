@@ -13,19 +13,11 @@ defmodule LogstashLoggerFormatterTest do
       " terminating",
       [
         1,
-        "** (exit) {{{%SomeError{
-        assigns: %{conn: %Plug.Conn{adapter: {Plug.Cowboy.Conn, :...}, assigns: %{layout: false, queues: []}, body_params: %{\"foo\": \"#{
-          @secret_value_example
-        }\"}, cookies: %Plug.Conn.Unfetched{aspect: :cookies}, halted: false, host: \"localhost\", method: \"GET\", owner: #PID<0.1369.0>, params: %{\"foo\" => \"#{
-          @secret_value_example
-        }\"}, path_info: [\"my_path\"], path_params: %{}, port: 4112, query_params: %{\"foo\" => \"#{
-          @secret_value_example
-        }\"}, remote_ip: {127, 0, 0, 1}, req_cookies: %Plug.Conn.Unfetched{aspect: :cookies, foo: \"#{
-          @secret_value_example
-        }\"}, req_headers: [{\"accept\", \"*/*\"}, {\"authorization\", \"Bearer #{
-          @secret_value_example
-        }\"}, {\"host\", \"localhost:4112\"}, {\"user-agent\", \"curl/7.87.0\"}], request_path: \"/my_path\", resp_body: nil, resp_cookies: %{}, resp_headers: [{\"cache-control\", \"max-age=0, private, must-revalidate\"}, {\"access-control-allow-origin\", \"*\"}, {\"access-control-expose-headers\", \"\"}, {\"access-control-allow-credentials\", \"true\"}], scheme: :http, script_name: [], secret_key_base: nil, state: :unset, status: 200}, queues: []}
-        }}}, []}",
+        """
+        ** (exit) {{{%SomeError{
+        assigns: %{conn: %Plug.Conn{adapter: {Plug.Cowboy.Conn, :...}, assigns: %{layout: false, queues: []}, body_params: %{"foo": "#{@secret_value_example}"}, cookies: %Plug.Conn.Unfetched{aspect: :cookies}, halted: false, host: "localhost", method: "GET", owner: #PID<0.1369.0>, params: %{"foo" => "#{@secret_value_example}"}, path_info: ["my_path"], path_params: %{}, port: 4112, query_params: %{"foo" => "#{@secret_value_example}"}, remote_ip: {127, 0, 0, 1}, req_cookies: %Plug.Conn.Unfetched{aspect: :cookies, foo: "#{@secret_value_example}"}, req_headers: [{"accept", "*/*"}, {"authorization", "Bearer #{@secret_value_example}"}, {"host", "localhost:4112"}, {"user-agent", "curl/7.87.0"}], request_path: "/my_path", resp_body: nil, resp_cookies: %{}, resp_headers: [{"cache-control", "max-age=0, private, must-revalidate"}, {"access-control-allow-origin", "*"}, {"access-control-expose-headers", ""}, {"access-control-allow-credentials", "true"}], scheme: :http, script_name: [], secret_key_base: nil, state: :unset, status: 200}, queues: []}
+        }}}, []}
+        """,
         [
           "\n",
           "Initial Call: ",
