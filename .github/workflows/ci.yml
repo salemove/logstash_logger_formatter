@@ -1,4 +1,4 @@
-name: Ruby
+name: ci
 
 on:
   push:
@@ -8,14 +8,14 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
     strategy:
       matrix:
-        otp: ['23.2']
-        elixir: ['1.11']
+        otp: ['25.3']
+        elixir: ['1.14']
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: true
       - uses: erlef/setup-beam@v1

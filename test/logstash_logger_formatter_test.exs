@@ -13,24 +13,16 @@ defmodule LogstashLoggerFormatterTest do
       " terminating",
       [
         1,
-        "** (exit) {{{%SomeError{
-        assigns: %{conn: %Plug.Conn{adapter: {Plug.Cowboy.Conn, :...}, assigns: %{layout: false, queues: []}, body_params: %{\"foo\": \"#{
-          @secret_value_example
-        }\"}, cookies: %Plug.Conn.Unfetched{aspect: :cookies}, halted: false, host: \"localhost\", method: \"GET\", owner: #PID<0.1369.0>, params: %{\"foo\" => \"#{
-          @secret_value_example
-        }\"}, path_info: [\"my_path\"], path_params: %{}, port: 4112, query_params: %{\"foo\" => \"#{
-          @secret_value_example
-        }\"}, remote_ip: {127, 0, 0, 1}, req_cookies: %Plug.Conn.Unfetched{aspect: :cookies, foo: \"#{
-          @secret_value_example
-        }\"}, req_headers: [{\"accept\", \"*/*\"}, {\"authorization\", \"Bearer #{
-          @secret_value_example
-        }\"}, {\"host\", \"localhost:4112\"}, {\"user-agent\", \"curl/7.87.0\"}], request_path: \"/my_path\", resp_body: nil, resp_cookies: %{}, resp_headers: [{\"cache-control\", \"max-age=0, private, must-revalidate\"}, {\"access-control-allow-origin\", \"*\"}, {\"access-control-expose-headers\", \"\"}, {\"access-control-allow-credentials\", \"true\"}], scheme: :http, script_name: [], secret_key_base: nil, state: :unset, status: 200}, queues: []}
-        }}}, []}",
+        """
+        ** (exit) {{{%SomeError{
+        assigns: %{conn: %Plug.Conn{adapter: {Plug.Cowboy.Conn, :...}, assigns: %{layout: false, queues: []}, body_params: %{"foo": "#{@secret_value_example}"}, cookies: %Plug.Conn.Unfetched{aspect: :cookies}, halted: false, host: "localhost", method: "GET", owner: #PID<0.1369.0>, params: %{"foo" => "#{@secret_value_example}"}, path_info: ["my_path"], path_params: %{}, port: 4112, query_params: %{"foo" => "#{@secret_value_example}"}, remote_ip: {127, 0, 0, 1}, req_cookies: %Plug.Conn.Unfetched{aspect: :cookies, foo: "#{@secret_value_example}"}, req_headers: [{"accept", "*/*"}, {"authorization", "Bearer #{@secret_value_example}"}, {"host", "localhost:4112"}, {"user-agent", "curl/7.87.0"}], request_path: "/my_path", resp_body: nil, resp_cookies: %{}, resp_headers: [{"cache-control", "max-age=0, private, must-revalidate"}, {"access-control-allow-origin", "*"}, {"access-control-expose-headers", ""}, {"access-control-allow-credentials", "true"}], scheme: :http, script_name: [], secret_key_base: nil, state: :unset, status: 200}, queues: []}
+        }}}, []}
+        """,
         [
-          '\n',
+          "\n",
           "Initial Call: ",
           ":cowboy_stream_h.request_process/3",
-          '\n',
+          "\n",
           "Ancestors: ",
           "[#PID<0.2.0>, #PID<0.1.0>]"
         ],
@@ -44,12 +36,12 @@ defmodule LogstashLoggerFormatterTest do
         domain: [:otp, :sasl],
         erl_level: :error,
         error_logger: %{tag: :error_report, type: :crash_report},
-        file: "proc_lib.erl",
+        file: ~c"proc_lib.erl",
         function: "crash_report/4",
         gl: "#PID<0.2.0>",
         initial_call: {:cowboy_stream_h, :request_process, 3},
         line: 1,
-        logger_formatter: %{title: 'CRASH REPORT'},
+        logger_formatter: %{title: "CRASH REPORT"},
         module: :proc_lib,
         pid: "#PID<0.2.0>",
         report_cb: "&:proc_lib.report_cb/2",
@@ -73,7 +65,7 @@ defmodule LogstashLoggerFormatterTest do
 
     message =
       capture_log(fn ->
-        Logger.warn(
+        Logger.warning(
           "Test message",
           application: :otp_app,
           extra_pid: pid,
@@ -89,7 +81,7 @@ defmodule LogstashLoggerFormatterTest do
     assert decoded_message["application"] == "logstash_formatter"
     assert decoded_message["otp_application"] == "otp_app"
     assert decoded_message["@timestamp"] =~ ~r[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}\+00:00]
-    assert decoded_message["level"] == "warn"
+    assert decoded_message["level"] == "warning"
     assert decoded_message["module"] == "Elixir.#{inspect(__MODULE__)}"
     assert decoded_message["function"] == "#{to_string(test_name)}/1"
     assert decoded_message["extra_pid"] == inspect(pid)
@@ -109,7 +101,7 @@ defmodule LogstashLoggerFormatterTest do
 
     message =
       capture_log(fn ->
-        Logger.warn("Test message", datetime: datetime)
+        Logger.warning("Test message", datetime: datetime)
       end)
 
     decoded_message = Jason.decode!(message)
@@ -123,7 +115,7 @@ defmodule LogstashLoggerFormatterTest do
 
     message =
       capture_log(fn ->
-        Logger.warn("Test message", datetime: struct)
+        Logger.warning("Test message", datetime: struct)
       end)
 
     decoded_message = Jason.decode!(message)
@@ -136,11 +128,25 @@ defmodule LogstashLoggerFormatterTest do
 
     message =
       capture_log(fn ->
-        Logger.warn("Test message", foo: function)
+        Logger.warning("Test message", foo: function)
       end)
 
     decoded_message = Jason.decode!(message)
     assert decoded_message["foo"] == "&:application_controller.format_log/1"
+  end
+
+  test "logs file metadata as a string" do
+    log_event =
+      Jason.decode!(
+        LogstashLoggerFormatter.format(
+          :info,
+          "message",
+          @example_timestamp,
+          Keyword.new(%{file: ~c"proc_lib.erl"})
+        )
+      )
+
+    assert log_event["file"] == "proc_lib.erl"
   end
 
   test "logs unhandled structs" do
@@ -190,7 +196,7 @@ defmodule LogstashLoggerFormatterTest do
   test "truncates metadata" do
     message =
       capture_log(fn ->
-        Logger.warn(
+        Logger.warning(
           "Test message",
           long_list: [
             "some long string in it 1",
@@ -375,7 +381,7 @@ defmodule LogstashLoggerFormatterTest do
 
     message =
       capture_log(fn ->
-        Logger.warn(
+        Logger.warning(
           invalid_utf8_bytes,
           key1: invalid_utf8_bytes,
           key2: {:a, invalid_utf8_bytes}

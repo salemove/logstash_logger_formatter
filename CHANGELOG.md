@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.5
+
+* Add support for Elixir 1.14 with OTP 25
+
 ## 1.1.4
 
 - Allow crash reports to be ingested by ElasticSearch

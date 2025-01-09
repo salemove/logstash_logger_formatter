@@ -10,7 +10,7 @@ list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:logstash_logger_formatter, "~> 0.1.0"}
+    {:logstash_logger_formatter, "~> 1.1.5"}
   ]
 end
 ```
