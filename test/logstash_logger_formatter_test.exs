@@ -44,7 +44,7 @@ defmodule LogstashLoggerFormatterTest do
         domain: [:otp, :sasl],
         erl_level: :error,
         error_logger: %{tag: :error_report, type: :crash_report},
-        file: "proc_lib.erl",
+        file: ~c"proc_lib.erl",
         function: "crash_report/4",
         gl: "#PID<0.2.0>",
         initial_call: {:cowboy_stream_h, :request_process, 3},
@@ -141,6 +141,20 @@ defmodule LogstashLoggerFormatterTest do
 
     decoded_message = Jason.decode!(message)
     assert decoded_message["foo"] == "&:application_controller.format_log/1"
+  end
+
+  test "logs file metadata as a string" do
+    log_event =
+      Jason.decode!(
+        LogstashLoggerFormatter.format(
+          :info,
+          "message",
+          @example_timestamp,
+          Keyword.new(%{file: ~c"proc_lib.erl"})
+        )
+      )
+
+    assert log_event["file"] == "proc_lib.erl"
   end
 
   test "logs unhandled structs" do

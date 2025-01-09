@@ -56,9 +56,20 @@ defmodule LogstashLoggerFormatter do
 
   defp prepare_metadata(metadata) do
     metadata
+    |> prepare_file()
     |> prepare_mfa()
     |> prepare_crash_report_meta()
     |> Map.new(fn {k, v} -> {metadata_key(k), format_metadata(v)} end)
+  end
+
+  defp prepare_file(metadata) do
+    Keyword.update(metadata, :file, "", fn file ->
+      if is_list(file) && List.ascii_printable?(file) do
+        List.to_string(file)
+      else
+        file
+      end
+    end)
   end
 
   defp prepare_mfa(metadata) do
